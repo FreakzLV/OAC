@@ -6,8 +6,7 @@ CREA CARPETAS mkdir
 
 MUEVE EL DIRECTORIO cd /workspaces/OAC/
 
-CREAR ARCHIVOS .
+CREAR ARCHIVOS touch ejemplo.asm
 
- ld -m elf_i386 -s -o P P.o libpc_io.a
  
-ENSAMBLAJE Y EJECUCION nasm -f elf p3.asm ld -m elf_i386 -s -o .o libpc_io.apt ./
+ENSAMBLAJE Y EJECUCION nasm -f elf Practica8OAC.asm   ld -m elf_i386 -s -o Practica8OAC Preactica8OAC.o libpc_io.a
