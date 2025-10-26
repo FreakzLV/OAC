@@ -47,6 +47,49 @@ _start:
     
     call salto
 
+    ; ---- CORRIMIENTO A LA DERECHA ----
+    mov edx, msg7
+    call puts
+    call salto
+    
+    ; Mostrar cadena binaria inicial
+    mov edx, msg1_inicial
+    call puts
+    mov edx, cadena_8bits_5
+    call imprimir_cadena_8bits
+    
+    call salto
+    mov edx, msg1_corr
+    call puts
+    
+    call capturar_corrimientos
+    
+    call salto
+    
+    ; Aplicar corrimientos
+    mov edx, cadena_8bits_5
+    call corrimientos_derecha
+    
+    ; Mostrar cadena despues de corrimientos
+    mov edx, msg1_despues
+    call puts
+    mov edx, cadena_8bits_5
+    call imprimir_cadena_8bits
+    
+    call salto
+    
+    ; Convertir a valor numerico
+    mov edx, cadena_8bits_5
+    call convertir_8bits_a_valor
+    
+    mov edx, msg1_resultado
+    call puts
+    
+    mov esi, buffer_hex
+    call printHex
+    
+    call salto
+
     ; ---- ROTACION A LA DERECHA ----
     mov edx, msg2
     call puts
@@ -318,7 +361,7 @@ corrimientos_izquierda:
     push esi
     push edi
     
-    mov cl, [num_corr]      ; Número de corrimientos a realizar
+    mov cl, [num_corr]      ; Numero de corrimientos a realizar
     
 .loop_corrimientos:
     cmp cl, 0
@@ -330,29 +373,29 @@ corrimientos_izquierda:
     mov ah, al               ; Poner el bit en ah
     sahf                     ; Cargar ah en el registro de flags con ayuda de sahf (indicaciones del profesor)
     
-    ; Ahora el carry flag contiene el MSB que se "empujó" fuera
+    ; Ahora el carry flag contiene el MSB que se "empujo" fuera
     
-    ; Mover cada bit una posición a la izquierda
+    ; Mover cada bit una posicion a la izquierda
     ;  [x][x][x][x][x][x][x][x] <- 0
     ;   0  1  2  3  4  5  6  7
     ;  MSB                  LSB
     
-    mov edi, 0               ; Índice destino (empieza en posición 0)
-    mov esi, 1               ; Índice fuente (empieza en posición 1)
+    mov edi, 0               ; indice destino (empieza en posicion 0)
+    mov esi, 1               ; indice fuente (empieza en posicion 1)
     
 .loop_desplazar:
-    cmp edi, 7               ; ¿Ya llegamos a la última posición?
+    cmp edi, 7               ; ¿Ya llegamos a la ultima posicion?
     je .insertar_cero
     
-    mov al, [edx + esi]      ; Leer bit de posición fuente
-    mov [edx + edi], al      ; Escribir en posición destino
+    mov al, [edx + esi]      ; Leer bit de posicion fuente
+    mov [edx + edi], al      ; Escribir en posicion destino
     
     inc esi                  ; Avanzar al siguiente bit fuente
     inc edi                  ; Avanzar al siguiente bit destino
     jmp .loop_desplazar
     
 .insertar_cero:
-    ; Insertar '0' en la posición LSB (posición 7)
+    ; Insertar '0' en la posicion LSB (posicion 7)
     mov byte [edx + 7], '0'
     
     dec cl
@@ -364,7 +407,67 @@ corrimientos_izquierda:
     pop ecx
     pop eax
     ret
+
+
+
+
+;---- Corrimientos a la derecha ----
+corrimientos_derecha:
+    push eax
+    push ecx
+    push esi
+    push edi
     
+    mov cl, [num_corr]      ; Numero de corrimientos a realizar
+    
+.loop_corrimientos:
+    cmp cl, 0
+    je .fin
+    
+    ; Guardar el bit LSB (posicion 7) que se va a "empujar" fuera
+    mov al, [edx + 7]
+    sub al, '0'              ; Convertir '0'/'1' a 0/1
+    mov ah, al               ; Poner el bit en ah
+    sahf                     ; Cargar ah en el registro de flags con ayuda de sahf (indicaciones del profesor)
+    
+    ; Ahora el carry flag contiene el LSB que se "empujo" fuera
+    
+    ; Mover cada bit una posicion a la derecha
+    ; 0 ->  [x][x][x][x][x][x][x][x] 
+    ;        0  1  2  3  4  5  6  7
+    ;       MSB                  LSB
+    
+    mov edi, 7               ; indice destino (empieza en posicion 0)
+    mov esi, 6               ; indice fuente (empieza en posicion 1)
+    
+.loop_desplazar:
+    cmp edi, 0               ; ¿Ya llegamos a la ultima posicion?
+    je .insertar_cero
+    
+    mov al, [edx + esi]      ; Leer bit de posicion fuente
+    mov [edx + edi], al      ; Escribir en posicion destino
+    
+    dec esi                  ; Avanzar al siguiente bit fuente
+    dec edi                  ; Avanzar al siguiente bit destino
+    jmp .loop_desplazar
+    
+.insertar_cero:
+    ; Insertar '0' en la posicion MSB (posicion 0)
+    mov byte [edx + 0], '0'
+    
+    dec cl
+    jmp .loop_corrimientos
+    
+.fin:
+    pop edi
+    pop esi
+    pop ecx
+    pop eax
+    ret
+
+
+
+
 ; ----- Subrutina para hacer Rotacion a la Derecha ----
 rotacion_derecha:
     push eax
@@ -389,7 +492,7 @@ rotacion_derecha:
     ; Guardar el bit de la posición 7 (LSB)
     mov bl, [edx + 7]
     mov ah, bl
-    sahf  ; Pasar el LSB al carry (aunque aquí no usamos CF realmente)
+    sahf  ; Pasar el LSB al carry
     
     ; Mover bits de derecha a izquierda
     mov edi, 7
@@ -426,6 +529,9 @@ rotacion_derecha:
     pop ecx
     pop eax
     ret
+
+
+
 
 ; ----- Subrutina para hacer Rotacion a la Izquierda ----
 rotacion_izquierda:
@@ -487,6 +593,9 @@ rotacion_izquierda:
     pop ecx
     pop eax
     ret
+
+
+
 
 ;---- Subrutina para hacer rotacion a la izquierda con acarreo ----
 rotacion_izquierda_acarreo:
@@ -562,6 +671,8 @@ rotacion_izquierda_acarreo:
     ret
 
 
+
+
 ;---- Subrutina para hacer rotacion a la derecha con acarreo ----
 rotacion_derecha_acarreo:
     push eax
@@ -634,6 +745,7 @@ rotacion_derecha_acarreo:
     pop eax
     ret
 
+
 ; Salto de linea
 salto:
     push eax
@@ -704,6 +816,8 @@ section .data
 
     msg6 db "===== Rotacion a la derecha con acarreo =====", 0
 
+    msg7 db "===== Corrimientos a la izquierda =====", 0
+
     tabla_pesos db 8, 4, 2, 1
     tabla_pesos_rotacion db 128, 64, 32, 16, 8, 4, 2, 1
 
@@ -712,6 +826,8 @@ section .data
     cadena_8bits_2 db '10101111' ; Cadena binaria de 4 bits predefinida en memoria (osea que no se captura se cambia desde aqui)
     cadena_8bits_3 db '10101111' ; Cadena binaria de 4 bits predefinida en memoria (osea que no se captura se cambia desde aqui)
     cadena_8bits_4 db '10101111' ; Cadena binaria de 4 bits predefinida en memoria (osea que no se captura se cambia desde aqui)
+    cadena_8bits_5 db '10101111' ; Cadena binaria de 4 bits predefinida en memoria (osea que no se captura se cambia desde aqui)
+
 section .bss
     num_corr resb 1
     num_rotacion resb 1
