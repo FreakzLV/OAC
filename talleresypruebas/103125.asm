@@ -8,16 +8,13 @@ _start:
     mov eax, 65h
     mov byte [num_rotacion], 0
 
-    ; convertir eax a cadena binaria
     call valor_a_binario
     
-    ; aplicar rotacion
     mov edx, cadena_binaria
     call rotacion_izquierda_acarreo
     
-    ; resultado
     mov edx, cadena_binaria
-    call imprimir_cadena_32bits
+    call imprimir32
 
     call salto
     call salto
@@ -59,7 +56,7 @@ valor_a_binario:
     mov ebx, 2
     div ebx                 ; Dividir en base 2
     
-    add dl, '0'             ; Convertir 0/1 a '0'/'1'
+    add dl, 48              ; Pasar de numero a cadena
     mov [edi + ecx - 1], dl ; Guardar de derecha a izquierda
     
     dec cl
@@ -140,7 +137,7 @@ rotacion_izquierda_acarreo:
     pop eax
     ret
 
-imprimir_cadena_32bits:
+imprimir32:
     push eax
     push edx
     push esi
