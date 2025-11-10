@@ -1,133 +1,126 @@
 .model tiny
 
-locals
-
 .data
-  Mens db "     "
-  
 
-.code
-    org 100h
+.code 
+    org 100h 
 
-;----------Precedimiento principal----------
+;****************************************************
+;   Procedimiento Principal
+;****************************************************
 
-  principal proc
-            mov sp,0fffh
-            lea si, Mens
-            mov ax, 100
-            call printHex
-            mov al, 13
-            call putchar
-            mov ax, 100
-            call printDecimal
-            mov al, 13
-            call putchar
-    @@ini0: mov dx, 1
-    @@ini1: mov cx, dx
-   @@sigue: mov al, 'x'
-            call putchar
-            loop @@sigue
-            mov al, 10
-            call putchar
-            mov al, 13
-            call putchar
-            inc dx
-            cmp dx, 20
-            jbe @@ini1
-    @@inf:
-    jmp @@inf
-            ret
-            endp
+principal proc
+;PrintHex y PrintDec
+    mov sp, 0fffh     ;inicializar SP(Stack Pointer)
+    call salto
+    
+    mov ax, 0abcdh
+    call printHex
+    call salto
+    
+    mov ax, 1234h
+    call printDec
+    call salto
 
-;----------Precedimientos----------
-
-  putchar proc
-          push ax
-          push dx
-          mov dl, al
-          mov ah, 2
-          int 21h
-          pop dx
-          pop ax
-          ret
-          endp
-          
-  printHex proc
-           push ax
-           push bx
-           push cx
-           push dx
-           push si
-           mov dx, ax
-           mov bx, 0fh
-           mov cl, 12
-     .nxt: shr ax,cl
-     .msk: and ax,bx
-           cmp al, 9
-           jbe .menor
-           add al,7
-    .menor:add al,'0'
-           mov byte [si],al
-           inc si
-           mov ax, dx
-           cmp cl, 0
-           je .print
-           sub cl, 4
-           cmp cl, 0
-           ja .nxt
-           je .msk
-   .print: mov cl, 4
-           pop si
-           push si
-  .printy: mov al, byte [si]
-           call putchar
-           inc si
-           loop .printy
-           mov al, 10
-           call putchar
-           pop si
-           pop dx
-           pop cx
-           pop bx
-           pop ax
-           ret
-           endp
+;Listado 1
+@@ini0: 
+    mov dx, 1
+@@ini1: mov cx, dx
+@@sigue: mov al, 'x'
+    call putchar
+    loop @@sigue
+    mov al, 10
+    call putchar
+    mov al, 13
+    call putchar
+    inc dx
+    cmp dx, 20
+    jbe @@ini1
+    @@final:
+    jmp @@final
    
-    printDecimal proc ;  si = cad tempora  ax = num
-                 push cx
-                 push ax
-                 push si
- 
-                 inc si   ; apuntar al final de tu numero
-                 inc si
-                 inc si
-                 inc si
-                 mov cl, 32
-                 mov byte [si], cl ; espacio al final
-                 dec si
- 
-             .convert_loop:
-                 mov ah, 0    ; limpiar ah
-                 mov cl, 10
-                 div cl         ; AX / 10 -> residuo en ah
-                 add ah, '0'     ; convertir residuo a ASCII
-                 mov byte [si], ah   ; guardar el numero en ASCII
-                 dec si
-                 test al, al
-                 jnz .convert_loop  
-                 inc si    ; apuntar al primer numero 
+    ret
+endp
 
-        .printd: mov al, byte [si]
-                 call putchar
-                 inc si
-                 cmp al, 32
-                 jne .printd
-                 mov al, 10
-                 call putchar
- 
-                 pop si
-                 pop ax
-                 pop cx
-                 ret
-                 endp
+;****************************************************
+;   Procedimientos
+;****************************************************   
+
+; Subrutina salto - Mejor presentacion
+salto proc
+    push ax
+    mov ah, 2
+    mov dl, 13
+    int 21h
+    mov dl, 10
+    int 21h
+    pop ax
+    ret
+endp
+
+; Subrutina putchar (la del ejemplo) - Sirve ademas para los prints hex y dec
+putchar proc
+    push ax
+    push dx
+    mov dl, al
+    mov ah, 2  ; imprimir caracter DL
+    int 21h    ; usando servicio 2 (ah = 2)
+    pop dx     ; del int 21h
+    pop ax
+    ret
+endp
+
+; Subrutina printHex
+printHex proc
+    push ax
+    mov dx, ax
+    mov cl, 4
+    mov bl, 0fh
+@@siguiente:
+    rol ax, cl
+    and ax, bx
+    cmp al, 10
+    jl @@sumar
+    add al, 7
+@@sumar: 
+    add al, '0'
+    call putchar
+    mov ax, dx
+    add cl, 4
+    cmp cl, 16
+    ja @@salir
+    jmp @@siguiente
+@@salir:
+    pop ax
+    ret
+
+; Subrutina printDec (como el de la practica 1 extra pero adaptado)
+printDec proc
+    push ax
+    push bx
+    push cx
+    push dx
+    mov cx, 0
+    mov bx, 10
+@@conversion:
+    mov dx, 0 ;limpiar dx para la division
+    div bx    ; ax = ax/10, dx = ax%10
+    push dx
+    
+    inc cx
+    test ax, ax
+    jnz @@conversion
+@@imp:
+    pop dx
+    add dl, '0'
+    mov al, dl ;Para imprimirlo con el putchar
+    call putchar
+    loop @@imp ;Para imprimir todos
+    
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+endp
 end principal
