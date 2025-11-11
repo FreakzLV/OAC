@@ -14,7 +14,7 @@ principal proc
     mov sp, 0fffh     ;inicializar SP(Stack Pointer)
     call salto
     
-    mov ax, 0abcdh
+    mov ax, 14207d
     call printHex
     call salto
     
@@ -46,7 +46,7 @@ endp
 ;   Procedimientos
 ;****************************************************   
 
-; Subrutina salto - Mejor presentacion
+; Subrutina salto
 salto proc
     push ax
     mov ah, 2
@@ -58,6 +58,7 @@ salto proc
     ret
 endp
 
+    
 ; Subrutina putchar (la del ejemplo) - Sirve ademas para los prints hex y dec
 putchar proc
     push ax
@@ -70,29 +71,38 @@ putchar proc
     ret
 endp
 
-; Subrutina printHex
+; Subrutina printHex (adaptado a 16bits y cambio ya que no se necesita guardar ahora)
 printHex proc
     push ax
-    mov dx, ax
-    mov cl, 4
-    mov bl, 0fh
-@@siguiente:
-    rol ax, cl
-    and ax, bx
-    cmp al, 10
-    jl @@sumar
-    add al, 7
-@@sumar: 
+    push bx
+    push cx
+    push dx
+    
+    mov cx, 4     ; 4 porque 16bits son 4 digitos hexadecimales
+@@ciclo:
+    rol ax, 4     ; Rotar 4 bits a la izquierda
+    push ax       ; Guardar AX
+    
+    and al, 0Fh   ; Quedarnos con los 4 bits bajos de al
+    cmp al, 9
+    jbe @@siesdigito
+    add al, 7     ; Esto para hacerlo letra si se pasa de 9 (A-F)
+    
+@@siesdigito:
     add al, '0'
-    call putchar
-    mov ax, dx
-    add cl, 4
-    cmp cl, 16
-    ja @@salir
-    jmp @@siguiente
-@@salir:
+    
+    mov dl, al
+    call putchar ; Imprimir con el putchar
+    
+    pop ax       ; Recuperar AX
+    loop @@ciclo
+    
+    pop dx
+    pop cx
+    pop bx
     pop ax
     ret
+endp
 
 ; Subrutina printDec (como el de la practica 1 extra pero adaptado)
 printDec proc
