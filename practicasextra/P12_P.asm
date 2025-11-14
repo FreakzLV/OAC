@@ -1,7 +1,14 @@
 .model tiny
 locals
+
+.data
+    PA              DW 0040h
+    PB              DW 0041h
+    PC              DW 0042h
+    RCtr            DW 0043h
+    PTOs_all_out    DW 80h ;80h para indicar todos los puertos son de salida
     
- .code
+.code
     org 100h
     
 principal proc
@@ -36,7 +43,6 @@ principal proc
         call printBin
         call salto
 
-        /*
         ;SetBitPort
         mov dx, 42h
         mov cl, 4
@@ -57,7 +63,6 @@ principal proc
         call notBitPort
         call printBin
         call salto
-        */
 .inf:
     jmp .inf
     ret
