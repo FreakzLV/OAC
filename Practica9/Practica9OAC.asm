@@ -42,6 +42,7 @@ _start:
     mov edx, msg_resultado
     call puts
     
+    ; HELLO WORLD
     mov esi, buffer_hex
     call printHex
 
